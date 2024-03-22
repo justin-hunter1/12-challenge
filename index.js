@@ -88,14 +88,14 @@ function cEmp() {
         {
             type: "list",
             message: "What is the new employees' role: ",
-            choice: ["1", "2", "3"],
+            choices: ["1", "2", "3"],
             // choice: rChoice,
             name: "emp_r"
         },
         {
             type: "list",
             message: "Who is the new employees' Manager: ",
-            choice: ["1", "2", "3", null],
+            choices: ["1", "2", "3",],
             // choice: mgrChoice,
             name: "mgr_id"
         }
@@ -114,7 +114,7 @@ function cEmp() {
             db.cEmp(newEmp);
     })
     .catch((err) => console.log(err));
-
+    
 }
 
 function cDept() {
