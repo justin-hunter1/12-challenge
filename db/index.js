@@ -37,8 +37,9 @@ class DB {
 
 // Create a new department
   cDept(department) {
+    const { name } = department;
     return this.query("INSERT INTO department (name) VALUES ($1)",
-      [department.name,]);
+      [name]);
   };
 
 // Create a new role

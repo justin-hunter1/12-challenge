@@ -1,11 +1,13 @@
-// Global Declaration 
+// Application Imports
 const inquirer = require("inquirer");
 const db = require ("./db/index.js");
 
+// Global Declarations 
 
 
-function init() {
+async function init() {
     // declaration of Options available
+
     let options = [
         {value: "vDept", name: "view all departments"},
         {value: "vRole", name: "view all roles"},
@@ -16,6 +18,7 @@ function init() {
         {value: "upEmpRole", name: "update an employee role"},
         {value: "exit", name: "Exit"}
     ];
+
     // declaration of questions
     let initialquestion = [
         {
@@ -25,7 +28,6 @@ function init() {
             name: "initQ"
         }
     ];
-    
 
     inquirer
         .prompt(initialquestion)
@@ -59,21 +61,26 @@ function init() {
         .catch((err) => console.log(err));
 }
 
+// list all current employees
 function fae() {
     console.log("find all emp");
+    console.table()
 }
 
+// list all current departments
 function fad() {
     console.log("find all dept");
 }
 
+// list all current roles
 function far() {
     console.log("find all role");
 }
 
+// create new employee
 function cEmp() {
-    // let rChoice = getAvailRoles();
-    // let mgrChoice = getAvailMgr();
+    rChoice = getAvailRoles();
+    mgrChoice = getAvailMgr();
     let questions = [
         {
             type: "input",
@@ -88,8 +95,8 @@ function cEmp() {
         {
             type: "list",
             message: "What is the new employees' role: ",
-            choices: ["1", "2", "3"],
-            // choice: rChoice,
+            // choices: ["1", "2", "3"],
+            choices: rChoice,
             name: "emp_r"
         },
         {
@@ -104,47 +111,124 @@ function cEmp() {
     inquirer
         .prompt(questions)
         .then((answers) => {
-            console.log(answers);
-            let newEmp = {
+            let newemp = {
                 manager_id: answers.mgr_id,
                 role_id: answers.emp_r,
                 first_name: answers.emp_fn,
                 last_name: answers.emp_ln
             };
-            db.cEmp(newEmp);
-    })
+            db.cEmp(newemp);
+        })
+        .then(() => { 
+            console.log(`The new employee ${newemp.first_name} ${newemp.last_name} has been written to DB.`);
+        })
+        .then(() => init())
     .catch((err) => console.log(err));
     
 }
 
+// create new department
 function cDept() {
-    console.log("find create dept");
+    let questions = [
+        {
+            type: "input",
+            message: "What is the new department name: ",
+            name: "dept_name"
+        }
+    ]
+    inquirer
+        .prompt(questions)
+        .then((answers) => {
+            let newdept = {
+                name: answers.dept_name
+            };
+            db.cDept(newdept);
+        })
+        .then(() => { 
+            console.log(`The department ${newEmp.name} has been written to DB.`);
+        })
+        .then(() => init())
+    .catch((err) => console.log(err));
+
 }
 
+// create new role
 function cRole() {
-    console.log("find create role");
+    // let aDept = getAvailDept();
+    let questions = [
+        {
+            type: "input",
+            message: "What is the new role name: ",
+            name: "role_name"
+        },
+        {
+            type: "input",
+            message: "What is the salary of this role: ",
+            name: "role_salary"
+        },
+        {
+            type: "list",
+            message: "Which department is this role for: ",
+            choices: ["1", "2", "3"],
+            // choice: aDept,
+            name: "role_dept_id"
+        }
+    ]
+    inquirer
+        .prompt(questions)
+        .then((answers) => {
+            let newrole = {
+                title: answers.role_name,
+                salary: answers.role_salary,
+                department_id: answers.role_dept_id
+            };
+            db.cRole(newrole);
+        })
+        .then(() => { 
+            console.log(`The new role ${newEmp.title} has been written to DB.`);
+        })
+        .then(() => init())
+    .catch((err) => console.log(err));
+
 }
+
+// Update existing employee profile
 function uep() {
     console.log("find update emp role");
 }
 
+// exit application
 function quit() {
     console.log("Logged Off");
     process.exit();
 }
 
-// function getAvailRoles() {
-//     db.far().then(({rec}) => {
-//         let roles = rec
-//         let availRoles = roles.map(({id, title}) => ({
-//             name: title,
-//             value: id
-//         })); return availRoles;
-//     });
-// };
+// lookup current roles to be used in employee creation
+function getAvailRoles() {
+    db.far()
+    .then(
+        ({rows}) => {
+            let roles = rows;
+            let availRoles = roles.map(({id, title}) => ({
+                name: title,
+                value: id
+            }));
+            return availRoles;
+        }   
+    )
+    .catch((err) => console.log(err));
+    return;
+};
 
-// function getAvailMgr() {
+// lookup current managers to be used in employee creation
+function getAvailMgr() {
+    
+};
 
-// };
+// lookup current department to be used in role creation
+function getAvailDept() {
+    
+};
+
 
 init();
