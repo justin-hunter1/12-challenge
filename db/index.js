@@ -8,7 +8,8 @@ class DB {
     try {
       const result = await client.query(sql, args);
       return result;
-    } finally {
+    }
+    finally {
       client.release();
     }
   };
@@ -27,6 +28,11 @@ class DB {
   far() {
     return this.query("select role.title, role.id, department.name, role.salary from role inner join department on role.department_id = department.id;");
   };
+
+// find managers
+  gam() {
+    return this.query("select employee.first_name, employee.last_name, employee.id from employee where employee.mgr = true;");
+  };  
 
 // Create a new employee
   cEmp(employee) {

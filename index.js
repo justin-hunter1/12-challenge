@@ -5,7 +5,7 @@ const db = require ("./db/index.js");
 // Global Declarations 
 
 
-async function init() {
+function init() {
     // declaration of Options available
 
     let options = [
@@ -63,24 +63,45 @@ async function init() {
 
 // list all current employees
 function fae() {
-    console.log("find all emp");
-    console.table()
+    db.fae()
+    .then(
+        ({rows}) => {
+            let emp = rows;
+            console.table(emp);
+        }
+    )
+    .then(() => init())
+    .catch((err) => console.log(err));
 }
 
 // list all current departments
 function fad() {
-    console.log("find all dept");
+    db.fad()
+    .then(
+        ({rows}) => {
+            let dept = rows;
+            console.table(dept);
+        }
+    )
+    .then(() => init())
+    .catch((err) => console.log(err));
 }
 
 // list all current roles
 function far() {
-    console.log("find all role");
+    db.far()
+    .then(
+        ({rows}) => {
+            let roles = rows;
+            console.table(roles);
+        }
+    )
+    .then(() => init())
+    .catch((err) => console.log(err));
 }
 
 // create new employee
-function cEmp() {
-    rChoice = getAvailRoles();
-    mgrChoice = getAvailMgr();
+async function cEmp() {
     let questions = [
         {
             type: "input",
@@ -95,15 +116,13 @@ function cEmp() {
         {
             type: "list",
             message: "What is the new employees' role: ",
-            // choices: ["1", "2", "3"],
-            choices: rChoice,
+            choices: rChoice = await getAvailRoles(),
             name: "emp_r"
         },
         {
             type: "list",
             message: "Who is the new employees' Manager: ",
-            choices: ["1", "2", "3",],
-            // choice: mgrChoice,
+            choices: mgrChoice = await getAvailMgr(),
             name: "mgr_id"
         }
 
@@ -111,20 +130,19 @@ function cEmp() {
     inquirer
         .prompt(questions)
         .then((answers) => {
-            let newemp = {
-                manager_id: answers.mgr_id,
-                role_id: answers.emp_r,
+            var newemp = {
                 first_name: answers.emp_fn,
-                last_name: answers.emp_ln
-            };
+                last_name: answers.emp_ln,
+                role_id: answers.emp_r,
+                manager_id: answers.mgr_id,
+             };
             db.cEmp(newemp);
         })
-        .then(() => { 
-            console.log(`The new employee ${newemp.first_name} ${newemp.last_name} has been written to DB.`);
-        })
+        .then(() =>
+            console.log(`The new employee has been written to DB.`)
+        )
         .then(() => init())
     .catch((err) => console.log(err));
-    
 }
 
 // create new department
@@ -145,7 +163,7 @@ function cDept() {
             db.cDept(newdept);
         })
         .then(() => { 
-            console.log(`The department ${newEmp.name} has been written to DB.`);
+            console.log(`The department has been written to DB.`);
         })
         .then(() => init())
     .catch((err) => console.log(err));
@@ -153,8 +171,7 @@ function cDept() {
 }
 
 // create new role
-function cRole() {
-    // let aDept = getAvailDept();
+async function cRole() {
     let questions = [
         {
             type: "input",
@@ -169,8 +186,7 @@ function cRole() {
         {
             type: "list",
             message: "Which department is this role for: ",
-            choices: ["1", "2", "3"],
-            // choice: aDept,
+            choices: aDept = await getAvailDept(),
             name: "role_dept_id"
         }
     ]
@@ -185,7 +201,7 @@ function cRole() {
             db.cRole(newrole);
         })
         .then(() => { 
-            console.log(`The new role ${newEmp.title} has been written to DB.`);
+            console.log(`The new role has been written to DB.`);
         })
         .then(() => init())
     .catch((err) => console.log(err));
@@ -193,8 +209,34 @@ function cRole() {
 }
 
 // Update existing employee profile
-function uep() {
-    console.log("find update emp role");
+async function uep() {
+    let questions = [
+        {
+            type: "list",
+            message: "What employee do you want to update: ",
+            choices: emp = await getEmp(),
+            name: "emp"
+        },
+        {
+            type: "list",
+            message: "What is the employees' New Role: ",
+            choices: role = await getAvailRoles(),
+            name: "role_id"
+        }
+    ]
+    inquirer
+        .prompt(questions)
+        .then((answers) => {
+            let employeeId = answers.emp;
+            let roleId = answers.role_id;
+            db.cEmp(employeeId, roleId);
+        })
+        .then(() =>
+            console.log(`The new employee role has been updated in DB.`)
+        )
+        .then(() => init())
+    .catch((err) => console.log(err));
+
 }
 
 // exit application
@@ -204,31 +246,67 @@ function quit() {
 }
 
 // lookup current roles to be used in employee creation
-function getAvailRoles() {
-    db.far()
-    .then(
-        ({rows}) => {
-            let roles = rows;
-            let availRoles = roles.map(({id, title}) => ({
+async function getAvailRoles() {
+    try {
+        let rows = await db.far()
+        let roles = rows.rows;
+            return roles.map(({id, title}) => ({
                 name: title,
                 value: id
             }));
-            return availRoles;
+
         }   
-    )
-    .catch((err) => console.log(err));
-    return;
+    catch {
+        ((err) => console.log(err));
+    }
 };
 
 // lookup current managers to be used in employee creation
-function getAvailMgr() {
-    
+async function getAvailMgr() {
+    try {
+        let rows = await db.gam()
+        let mgr = rows.rows;
+            return mgr.map(({id, first_name, last_name}) => ({
+                name: `${first_name} ${last_name}`,
+                value: id
+            }));
+
+        }   
+    catch {
+        ((err) => console.log(err));
+    }    
 };
 
 // lookup current department to be used in role creation
-function getAvailDept() {
-    
+async function getAvailDept() {
+    try {
+        const rows = await db.fad()
+        let roles = rows.rows;
+            return roles.map(({id, name}) => ({
+                name: name,
+                value: id
+            }));
+
+        }   
+    catch {
+        ((err) => console.log(err));
+    }   
 };
 
+// lookup current department to be used in role creation
+async function getEmp() {
+    try {
+        const rows = await db.fae()
+        let emp = rows.rows;
+            return emp.map(({id, first_name, last_name}) => ({
+                name: `${first_name} ${last_name}`,
+                value: id
+            }));
+
+        }   
+    catch {
+        ((err) => console.log(err));
+    }   
+};
 
 init();
