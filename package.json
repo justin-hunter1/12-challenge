@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "asciiart-logo": "^0.2.6",
+    "ascii-themes": "^1.0.1",
     "inquirer": "8.2.4",
     "pg": "^8.11.3"
   }
